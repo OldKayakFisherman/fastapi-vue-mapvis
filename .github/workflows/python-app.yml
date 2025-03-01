@@ -16,7 +16,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      DB.FILENAME: mvs.sqlite3
+      REFRESH.DATA: false
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
