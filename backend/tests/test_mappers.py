@@ -1,5 +1,5 @@
-from mappers import cvs_dict_to_virginia_landmark
-from database import VirginiaLandmarkModel
+from database import VirginiaLandmarkModel, VirginiaLandmarkRepository, get_context_session
+from mappers import cvs_dict_to_virginia_landmark, virginia_landmarks_minimal_to_dicts
 import unittest
 
 class MapperTests(unittest.TestCase):
@@ -34,7 +34,22 @@ class MapperTests(unittest.TestCase):
         self.assertEqual(model.longitude, -77.52050983)
         self.assertEqual(model.latitude, 38.78697117)
         self.assertEqual(model.location_type, "Public Library")
-        self.assertEqual(model.location_county, "Prince William County")
+        self.assertEqual(model.location, "Prince William County")
 
-        
-        
+
+    def test_virginia_landmarks_to_dicts(self):
+
+        db_models: list[VirginiaLandmarkModel] = []
+
+        with get_context_session() as db:
+            repo: VirginiaLandmarkRepository = VirginiaLandmarkRepository(db)
+            db_models: list[VirginiaLandmarkModel]  = repo.search()
+
+        self.assertIsNotNone(db_models)
+
+        raw_models: list[VirginiaLandmarkModel] = virginia_landmarks_minimal_to_dicts(db_models)
+
+        self.assertIsNotNone(raw_models)
+        self.assertGreater(len(raw_models), 1)
+
+    

@@ -14,3 +14,6 @@ class ConverterTests(unittest.TestCase):
         self.assertTrue(convert_string_to_bool("t"))
         self.assertTrue(convert_string_to_bool("1"))
         self.assertFalse(convert_string_to_bool("0"))
+
+  
+
