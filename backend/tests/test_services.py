@@ -1,8 +1,8 @@
 from config import AppSettings
-from database import get_session, ensure_database_created
+from database import get_context_session, ensure_database_created
 from parameters import VirginiaLandmarkSearchParameters
 from pipelines import VirginiaLandmarkPipeline
-from responses import VirgniaLandmarkSearchResponse
+from responses import VirginiaLandmarkSearchResponse, VirginiaLandmarkLookupResponse
 from services import VirginiaLandmarkService
 import unittest
 
@@ -15,7 +15,7 @@ class VirginiaLandmarkServiceTests(unittest.TestCase):
         pipeline: VirginiaLandmarkPipeline = VirginiaLandmarkPipeline()
     
 
-        with get_session() as db:
+        with get_context_session() as db:
             
             #ensure the database is created
             ensure_database_created()
@@ -31,14 +31,12 @@ class VirginiaLandmarkServiceTests(unittest.TestCase):
             service: VirginiaLandmarkService = VirginiaLandmarkService()
 
             #perform a basic search
-            response: VirgniaLandmarkSearchResponse = service.perform_search(db, request)
+            response: VirginiaLandmarkSearchResponse = service.perform_search(db, request)
 
             #test our result
             self.assertIsNotNone(response)
             self.assertEqual(response.record_count, 7026)
             self.assertEqual(len(response.data), 7026)
-            self.assertGreater(len(response.county_filters), 0)
-            self.assertGreater(len(response.location_filters), 0)
             self.assertTrue(response.success)
 
     def test_county_filter(self):
@@ -46,7 +44,7 @@ class VirginiaLandmarkServiceTests(unittest.TestCase):
         pipeline: VirginiaLandmarkPipeline = VirginiaLandmarkPipeline()
     
 
-        with get_session() as db:
+        with get_context_session() as db:
             
             #ensure the database is created
             ensure_database_created()
@@ -59,13 +57,13 @@ class VirginiaLandmarkServiceTests(unittest.TestCase):
             request: VirginiaLandmarkSearchParameters = VirginiaLandmarkSearchParameters() 
 
             #add a county filter
-            request.county_filters = ["Fairfax County"]
+            request.location_filters = ["Fairfax County"]
 
             #create our service
             service: VirginiaLandmarkService = VirginiaLandmarkService()
 
             #perform a basic search
-            response: VirgniaLandmarkSearchResponse = service.perform_search(db, request)
+            response: VirginiaLandmarkSearchResponse = service.perform_search(db, request)
 
             #test our result
             self.assertIsNotNone(response)
@@ -73,8 +71,6 @@ class VirginiaLandmarkServiceTests(unittest.TestCase):
             self.assertNotEqual(len(response.data), 7026)
             self.assertGreater(response.record_count,0)
             self.assertGreater(len(response.data), 0)
-            self.assertGreater(len(response.county_filters), 0)
-            self.assertGreater(len(response.location_filters), 0)
             self.assertTrue(response.success)
 
 
@@ -84,7 +80,7 @@ class VirginiaLandmarkServiceTests(unittest.TestCase):
         pipeline: VirginiaLandmarkPipeline = VirginiaLandmarkPipeline()
     
 
-        with get_session() as db:
+        with get_context_session() as db:
             
             #ensure the database is created
             ensure_database_created()
@@ -103,7 +99,7 @@ class VirginiaLandmarkServiceTests(unittest.TestCase):
             service: VirginiaLandmarkService = VirginiaLandmarkService()
 
             #perform a basic search
-            response: VirgniaLandmarkSearchResponse = service.perform_search(db, request)
+            response: VirginiaLandmarkSearchResponse = service.perform_search(db, request)
 
             #test our result
             self.assertIsNotNone(response)
@@ -111,8 +107,33 @@ class VirginiaLandmarkServiceTests(unittest.TestCase):
             self.assertNotEqual(len(response.data), 7026)
             self.assertGreater(response.record_count,0)
             self.assertGreater(len(response.data), 0)
-            self.assertGreater(len(response.county_filters), 0)
-            self.assertGreater(len(response.location_filters), 0)
             self.assertTrue(response.success)
 
 
+    def test_get_location_lookups(self):
+
+        with get_context_session() as db:
+
+            #create our service
+            service: VirginiaLandmarkService = VirginiaLandmarkService()
+
+            response: VirginiaLandmarkLookupResponse = service.get_location_lookups(db=db)
+
+            self.assertIsNotNone(response)
+            self.assertGreater(len(response.data), 0)
+            self.assertGreater(response.record_count, 0)
+            self.assertTrue(response.success)
+
+    def test_get_location_type_lookups(self):
+
+        with get_context_session() as db:
+
+            #create our service
+            service: VirginiaLandmarkService = VirginiaLandmarkService()
+
+            response: VirginiaLandmarkLookupResponse = service.get_location_type_lookups(db=db)
+
+            self.assertIsNotNone(response)
+            self.assertGreater(len(response.data), 0)
+            self.assertGreater(response.record_count, 0)
+            self.assertTrue(response.success)

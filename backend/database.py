@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from backend.config import AppSettings
+from config import AppSettings
 from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
@@ -36,8 +36,8 @@ class VirginiaLandmarkModel(BaseModel):
     url: Mapped[str] = mapped_column(nullable=True)
     latitude: Mapped[float] = mapped_column(nullable=False)
     longitude: Mapped[float] = mapped_column(nullable=False)
-    location_type: Mapped[str] = mapped_column(nullable=False)
-    location_county: Mapped[str] = mapped_column(nullable=False)
+    location_type: Mapped[str] = mapped_column(nullable=False, index=True)
+    location: Mapped[str] = mapped_column(nullable=False, index=True)
 
 
 settings: AppSettings = AppSettings()
@@ -49,15 +49,20 @@ engine = create_engine(
     connect_args=connect_args
 )
 
+
 @contextmanager
-def get_session():
+def get_context_session():
+    with Session(engine) as session:
+        yield session
+
+def get_fastapi_session():
     with Session(engine) as session:
         yield session
 
 def ensure_database_created():
     BaseModel.metadata.create_all(engine)
 
-SessionDep = Annotated[Session, Depends(get_session)]
+SessionDep = Annotated[Session, Depends(get_fastapi_session)]
 
 class VirginiaLandmarkRepository:
 
@@ -83,14 +88,38 @@ class VirginiaLandmarkRepository:
         self.db_session.commit()
         return record_count
     
-    def search(self, db:Session, counties_filter: List[str] = None, location_type_filters: List[str] = None) -> List[VirginiaLandmarkModel]:
+    def search(self, location_filter: List[str] = None, location_type_filters: List[str] = None) -> List[VirginiaLandmarkModel]:
 
-        query = db.query(VirginiaLandmarkModel)
+        query = self.db_session.query(VirginiaLandmarkModel)
 
-        if counties_filter:
-            query = query.filter(VirginiaLandmarkModel.location_county.in_(counties_filter))
+        if location_filter:
+            query = query.filter(VirginiaLandmarkModel.location.in_(location_filter))
 
         if location_type_filters:
             query = query.filter(VirginiaLandmarkModel.location_type.in_(location_type_filters))
 
         return query.all()
+    
+    def get_locations(self) -> List[str]:
+        
+        lookup: list[str] = []
+
+        query = self.db_session.query(VirginiaLandmarkModel.location).distinct()
+        rows = query.all()
+
+        for row in rows:
+            lookup.append(row[0])
+
+        return lookup
+
+    def get_location_types(self) -> List[str]:
+
+        lookup: list[str] = []
+
+        query = self.db_session.query(VirginiaLandmarkModel.location_type).distinct()
+        rows = query.all()
+
+        for row in rows:
+            lookup.append(row[0])
+
+        return lookup

@@ -1,13 +1,20 @@
 from pydantic import BaseModel
 
 
-class VirgniaLandmarkSearchResponse(BaseModel):
+class VirginiaLandmarkSearchResponse(BaseModel):
 
-    data: list[dict] = []
-    county_filters: list[str] = []
-    location_filters: list[str] = []
+    data: list = [dict]
     execution_time: float = 0
     record_count: int = 0
     success:bool = True
+
+class VirginiaLandmarkLookupResponse(BaseModel):
+
+    data: list = [dict]
+    lookup_type: str = None
+    execution_time: float = 0
+    record_count: int = 0
+    success:bool = True
+
 
 
