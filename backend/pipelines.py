@@ -35,13 +35,15 @@ class VirginiaLandmarkPipeline:
 
                 response.data_pipeline = "Virginia Landmarks"
 
+                #construct our filepath
+                response.data_filepath = os.path.join(settings.data_dir_root, "Virginia_Landmarks.csv")
+
                 if settings.refresh_data == True:
                     if existing_record_count > 0:
                         repo.truncate()
+                        existing_record_count = 0
 
                 if existing_record_count == 0:            
-                    #construct our filepath
-                    response.data_filepath = os.path.join(settings.data_dir_root, "Virginia_Landmarks.csv")
 
                     collected_models: List[VirginiaLandmarkModel] = read_virginia_landmarks(response.data_filepath)        
 
