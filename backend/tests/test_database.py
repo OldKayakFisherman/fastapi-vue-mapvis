@@ -17,7 +17,7 @@ class VirginiaLandmarkRepositoryTest(unittest.TestCase):
             VirginiaLandmarkPipeline().injest(settings=settings, db=db)
         
 
-    def test_get_location_counties(self):
+    def test_get_locations(self):
         with get_context_session() as db:
             repo: VirginiaLandmarkRepository = VirginiaLandmarkRepository(db)
             self.assertGreater(len(repo.get_locations()), 0)

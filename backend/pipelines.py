@@ -38,7 +38,8 @@ class VirginiaLandmarkPipeline:
                 if settings.refresh_data == True:
                     if existing_record_count > 0:
                         repo.truncate()
-                            
+
+                if existing_record_count == 0:            
                     #construct our filepath
                     response.data_filepath = os.path.join(settings.data_dir_root, "Virginia_Landmarks.csv")
 
@@ -48,7 +49,7 @@ class VirginiaLandmarkPipeline:
                         repo.save_all(collected_models)
                         response.records_imported = len(collected_models)
 
-                    response.success = True
+                response.success = True
 
         except Exception as ex:
             response.error = ex
